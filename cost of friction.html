@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Onboarding — Days Delayed &amp; Risk</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .stage { max-width: 780px; margin: 0 auto; padding: 5vh 2rem 3rem; }
+
+  .title { font-size: 1.7rem; font-weight: 700; color: #1a1a1a; margin: 0 0 1.5rem; text-align: center; }
+
+  .dr-row { display: flex; gap: 18px; }
+  .dr-card {
+    flex: 1; min-width: 0;
+    background: #ffffff; border: 1px solid #e5e3da; border-radius: 14px;
+    padding: 20px 22px; position: relative; overflow: hidden;
+  }
+  .dr-card.days { border-left: 4px solid #c0392b; }
+  .dr-card.risk { border-left: 4px solid #c49420; }
+
+  .dr-label { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #8a8a84; }
+  .dr-number-row { display:flex; align-items: baseline; gap: 8px; margin-top: 6px; position: relative; }
+  .dr-number {
+    font-family: "SF Mono", "Roboto Mono", ui-monospace, monospace;
+    font-size: 52px; font-weight: 700; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .days .dr-number { color: #8c2e1e; }
+  .risk .dr-number { color: #8a6415; }
+  .dr-unit { font-size: 15px; color: #6b6a64; }
+  .dr-delta {
+    font-family: ui-monospace, monospace; font-size: 16px; font-weight: 600;
+    opacity: 0; transform: translateY(4px); transition: opacity 0.4s ease, transform 0.4s ease;
+    position: absolute; top: 0; right: 0;
+  }
+  .dr-delta.show { opacity: 1; transform: translateY(0); }
+  .days .dr-delta { color: #c0392b; }
+  .risk .dr-delta { color: #c49420; }
+
+  .dr-bar-track { height: 5px; background: #eeece4; border-radius: 3px; margin-top: 14px; overflow: hidden; }
+  .dr-bar-fill { height: 100%; width: 0%; transition: width 0.6s ease; }
+  .days .dr-bar-fill { background: linear-gradient(90deg, #d67864, #c0392b); }
+  .risk .dr-bar-fill { background: linear-gradient(90deg, #e6c667, #c49420); }
+
+  .risk-tag {
+    display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px;
+  }
+
+  .current { margin-top: 26px; min-height: 120px; }
+  .cur-head { display:flex; align-items:center; gap: 8px; }
+  .badge-num {
+    flex: 0 0 30px; height: 30px; border-radius: 50%; border: 2px solid #c0392b; color: #c0392b;
+    display:flex; align-items:center; justify-content:center; font-size: 14px; font-weight: 700; background:#fff;
+  }
+  .feed-tag { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 5px; }
+  .feed-days { background: #FBEAE7; color: #8C2E1E; }
+  .feed-risk { background: #FBF3DC; color: #8A6415; }
+  .lbl { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 12px; margin-bottom: 4px; }
+  .gap-line { color: #8c2e1e; font-size: 18px; line-height: 1.5; }
+  .fix-line { color: #244a34; font-size: 18px; line-height: 1.5; }
+  .gap-lbl { color: #c0392b; }
+  .fix-lbl { color: #2f6f4e; }
+  .placeholder { color: #999; font-size: 16px; }
+
+  .hint {
+    margin-top: 2.5rem; text-align: center; font-size: 14.5px; color: #8a8a84;
+    display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+  }
+  .hint kbd {
+    font-family: ui-monospace, monospace; font-size: 13px; background: #f2f1ec;
+    border: 1px solid #d9d7cc; border-radius: 5px; padding: 2px 7px; color: #4a4a44;
+  }
+  .progress { text-align: center; font-size: 14.5px; color: #8a8a84; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="title">Vendor Onboarding — Cost of Friction</div>
+
+  <div class="dr-row">
+    <div class="dr-card days">
+      <div class="dr-label">Avg days delayed</div>
+      <div class="dr-number-row">
+        <span class="dr-number" id="dNum">0</span><span class="dr-unit">days</span>
+        <span class="dr-delta" id="dDelta">+0</span>
+      </div>
+      <div class="dr-bar-track"><div class="dr-bar-fill" id="dBar"></div></div>
+    </div>
+    <div class="dr-card risk">
+      <div class="dr-label">Risk level</div>
+      <div class="dr-number-row">
+        <span class="dr-number" id="rNum">0</span><span class="dr-unit">/ 4 flags</span>
+        <span class="dr-delta" id="rDelta">+0</span>
+      </div>
+      <div class="dr-bar-track"><div class="dr-bar-fill" id="rBar"></div></div>
+      <div class="risk-tag" id="rTag" style="background:#F2F1EC; color:#8a8a8a;">No flags yet</div>
+    </div>
+  </div>
+
+  <div class="current" id="curBox">
+    <div class="placeholder">Press → or click to reveal the first friction point.</div>
+  </div>
+</div>
+
+<script>
+  const drPoints = [
+    { gap: "Onboarding is only triggered once an invoice arrives.", fix: "Start onboarding with the field/plant manager or vendor directly.", type: "risk", severity: "Critical" },
+    { gap: "BP ID is created before background verification completes.", fix: "Gate BP ID creation behind a cleared background check.", type: "risk", severity: "High" },
+    { gap: "Untagged invoices sit waiting on a new vendor setup for a long time.", fix: "Assign a rotating owner with a 48-hour SLA.", type: "days", value: 15 },
+    { gap: "No automatic delay escalation exists anywhere in the process.", fix: "Onboard the whole process onto Nintex with escalation enabled.", type: "risk", severity: "High" },
+    { gap: "Change requests get copied manually between PaymentWorks and Nintex.", fix: "Use each system for one job only — no manual copying.", type: "days", value: 1 },
+    { gap: "No centralized document store across 4 systems.", fix: "Consolidate documents into one repository per onboarding ID.", type: "risk", severity: "Medium" },
+    { gap: "Manual data entry causes faulty data across systems.", fix: "Automate data integration in place of manual entry.", type: "days", value: 1 },
+    { gap: "No vendor master audit since the ERP migration years ago.", fix: "Run a one-time audit, then validate semi-annually.", type: "days", value: 1 }
+  ];
+
+  const severityRank = { "Low": 1, "Medium": 2, "High": 3, "Critical": 4 };
+  const severityColors = {
+    "None": "#F2F1EC,#8a8a8a",
+    "Low": "#FBF3DC,#8A6415",
+    "Medium": "#FCE9C7,#8A6415",
+    "High": "#F7D9B0,#8A3E15",
+    "Critical": "#F5C6C0,#8C2E1E"
+  };
+
+  let drCount = 0;
+  const drMax = drPoints.length;
+  const totalDays = drPoints.filter(p => p.type === 'days').reduce((s,p) => s + p.value, 0);
+  const totalRisk = drPoints.filter(p => p.type === 'risk').length;
+
+  function drRender(deltaType, deltaVal) {
+    const shown = drPoints.slice(0, drCount);
+    const daysSum = shown.filter(p => p.type === 'days').reduce((s,p) => s + p.value, 0);
+    const riskSum = shown.filter(p => p.type === 'risk').length;
+
+    document.getElementById('dNum').textContent = daysSum;
+    document.getElementById('dBar').style.width = (daysSum / totalDays * 100) + '%';
+    document.getElementById('rNum').textContent = riskSum;
+    document.getElementById('rBar').style.width = (riskSum / totalRisk * 100) + '%';
+
+    const revealedRisk = shown.filter(p => p.type === 'risk');
+    const latestRisk = revealedRisk.length ? revealedRisk[revealedRisk.length - 1].severity : "None";
+    const [bg, fg] = severityColors[latestRisk].split(',');
+    const tag = document.getElementById('rTag');
+    tag.textContent = latestRisk === "None" ? "No flags yet" : latestRisk;
+    tag.style.background = bg; tag.style.color = fg;
+
+    if (deltaType === 'days') {
+      const d = document.getElementById('dDelta');
+      d.textContent = '+' + deltaVal; d.classList.add('show');
+      setTimeout(() => d.classList.remove('show'), 900);
+    } else if (deltaType === 'risk') {
+      const d = document.getElementById('rDelta');
+      d.textContent = deltaVal; d.classList.add('show');
+      setTimeout(() => d.classList.remove('show'), 900);
+    }
+
+    const cur = document.getElementById('curBox');
+    if (drCount === 0) {
+      cur.innerHTML = '<div class="placeholder">Press &rarr; or click to reveal the first friction point.</div>';
+    } else {
+      const p = drPoints[drCount - 1];
+      let feedTag;
+      if (p.type === 'days') {
+        feedTag = '<span class="feed-tag feed-days">+' + p.value + ' day' + (p.value>1?'s':'') + '</span>';
+      } else {
+        const [bg, fg] = severityColors[p.severity].split(',');
+        feedTag = '<span class="feed-tag" style="background:' + bg + '; color:' + fg + ';">' + p.severity + ' risk</span>';
+      }
+      cur.innerHTML =
+        '<div class="cur-head"><div class="badge-num">' + drCount + '</div>' + feedTag + '</div>' +
+        '<div class="lbl gap-lbl">Friction point</div><div class="gap-line">' + p.gap + '</div>' +
+        '<div class="lbl fix-lbl">Fix</div><div class="fix-line">' + p.fix + '</div>';
+    }
+  }
+
+  function goNext() {
+    if (drCount < drMax) {
+      drCount++;
+      const p = drPoints[drCount - 1];
+      drRender(p.type, p.type === 'days' ? p.value : ('+' + p.severity));
+    }
+  }
+  function goPrev() {
+    if (drCount > 0) { drCount--; drRender(null, null); }
+  }
+  function goReset() { drCount = 0; drRender(null, null); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goNext(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goPrev(); }
+    else if (e.key === 'r' || e.key === 'R') { goReset(); }
+  });
+
+  // Most presentation clickers send ArrowRight/ArrowLeft (or PageDown/PageUp) keystrokes,
+  // so the keydown handler above already covers them. Clicking anywhere also advances,
+  // as a fallback for clickers that send a mouse/click signal instead.
+  document.body.addEventListener('click', () => goNext());
+
+  drRender(null, null);
+</script>
+</body>
+</html>
